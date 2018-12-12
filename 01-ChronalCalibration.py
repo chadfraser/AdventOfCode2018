@@ -17,7 +17,7 @@ def find_first_repeated_sum(file):
     file again without resetting our sum to 0.
 
     :param file: The text file from which we take all of the ints we want to sum
-    :return: The sum
+    :return: The first repeated sum we reach by iteratively summing the ints in our file
     """
     total_sum = 0
     found_sums = set()

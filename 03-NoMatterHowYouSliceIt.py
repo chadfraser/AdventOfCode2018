@@ -74,8 +74,8 @@ def find_min_required_dimensions(file):
     """Finds the minimum required width and height we need our FabricMap instance to be in order to take all of the
     measurements from our file.
 
-    :param file: The file containing the coordinates and dimensions we need to measure in our FabricMap instance
-    :return: The minimum width and height our FabricMap instance needs to be
+    :param file: The text file containing the coordinates and dimensions we need to measure in our FabricMap instance
+    :return: The minimum width and height our FabricMap instance needs to be, and the last ID number we read
     """
     max_a = 0
     max_b = 0
@@ -98,7 +98,7 @@ def find_fabric_overlaps(file, fabric_instance):
     Then, flattens the fabric_map of our fabric_instance and returns the total sum of coordinates that are a part of
     two or more measurements at once.
 
-    :param file: The file containing the measurements we need to map in our fabric_instance
+    :param file: The text file containing the measurements we need to map in our fabric_instance
     :param fabric_instance: The FabricMap instance that we map our measurements to
     :return: The total sum of coordinates that are a part of two or more measurements at once
     """
