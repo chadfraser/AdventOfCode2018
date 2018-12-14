@@ -51,7 +51,7 @@ def find_letter_to_remove_for_shortest_reaction_length(initial_string):
     :return: The letter that we can remove all instances of to get the shortest string after reacting, and the length
              of that string
     """
-    shortest_length = float('inf')
+    shortest_length = float("inf")
     letter_with_best_reaction = ""
 
     for letter in ascii_lowercase:

@@ -5,9 +5,9 @@ class FabricMap:
     def __init__(self, width, height, id_num):
         """Initializes the fabric_map and projected_dimensions fields of our FabricMap instance.
 
-        :param width: The total width of our_fabric map (+1 to account for index 0)
-        :param height: The total height of our_fabric map (+1 to account for index 0)
-        :param id_num: The length of our dimension_sizes list
+        :param width: The total width of our fabric_map (+1 to account for index 0)
+        :param height: The total height of our fabric_map (+1 to account for index 0)
+        :param id_num: The length of our projected_dimensions list (+1 to account for index 0)
         """
         self.fabric_map = [["0" for __ in range(height + 1)] for __ in range(width + 1)]
         self.flat_fabric_map = []
@@ -105,8 +105,8 @@ def find_fabric_overlaps(file, fabric_instance):
     for line in file:
         id_num, __, coordinates, dimensions = line.split()
         id_num = int(id_num[1:])
-        x, y = (int(a) for a in coordinates.strip(':').split(','))
-        width, height = (int(a) for a in dimensions.split('x'))
+        x, y = (int(a) for a in coordinates.strip(":").split(","))
+        width, height = (int(a) for a in dimensions.split("x"))
         fabric_instance.map_dimensions(x, y, width, height, id_num)
     fabric_instance.flatten_map()
     return fabric_instance.count_overlaps()
