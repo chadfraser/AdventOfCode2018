@@ -2,11 +2,12 @@ from collections import deque
 
 
 class Entity:
-    def __init__(self, x, y, character):
+    def __init__(self, x, y, character, attack=3):
         self.x = x
         self.y = y
         self.character = character
         self.health = 200
+        self.attack = attack
         self.last_round_acted = -1
 
     def __str__(self):
@@ -80,33 +81,18 @@ def find_nearest_target(coordinates_2d_array, x, y):
                     (x + offset_x, y + offset_y) not in coordinates_checked:
                 search_deque.append((x + offset_x, y + offset_y, distance + 1))
                 coordinates_checked[(x + offset_x, y + offset_y)] = (x, y, distance + 1)
-            # coordinates_checked.setdefault((x + offset_x, y + offset_y), (x, y, None))
 
     reachable_target_tiles = [(coord, previous) for coord, previous in coordinates_checked.items()
                               if coord in set_of_target_tiles]
     if reachable_target_tiles:
         minimum_distance = min(reachable_target_tiles, key=lambda coord: coord[1][-1])[1][-1]
-        print(minimum_distance)
         reachable_target_tiles = [(coord, previous) for coord, previous in reachable_target_tiles
                                   if previous[-1] == minimum_distance]
         if reachable_target_tiles:
             reachable_target_tiles.sort(key=lambda coord: coord[0][0])
             reachable_target_tiles.sort(key=lambda coord: coord[0][1])
-        # reachable_target_tiles.sort(key=lambda coord: coord[1][2])
             target_tile, previous_tile = reachable_target_tiles[0]
             return (target_tile, previous_tile[:-1]), coordinates_checked
-    # while search_deque:
-    #     x, y, distance = search_deque.popleft()
-    #
-    #     for offset_x, offset_y in offsets:
-    #         if (x + offset_x, y + offset_y) in set_of_target_tiles:
-    #             coordinates_checked.setdefault((x + offset_x, y + offset_y), (x, y))
-    #             return (x + offset_x, y + offset_y), coordinates_checked
-    #
-    #         if coordinates_2d_array[y + offset_y][x + offset_x] == "." and \
-    #                 (x + offset_x, y + offset_y) not in coordinates_checked:
-    #             search_deque.append((x + offset_x, y + offset_y, distance + 1))
-    #         coordinates_checked.setdefault((x + offset_x, y + offset_y), (x, y))
     return None, None
 
 
@@ -138,8 +124,6 @@ def choose_attack_target(coordinates_2d_array, x, y):
 
     adjacent_health_values = []
     for temp_x, temp_y in [(x, y - 1), (x - 1, y), (x + 1, y), (x, y + 1)]:
-        # coordinates_2d_array[y - 1][x], coordinates_2d_array[y][x - 1], coordinates_2d_array[y][x + 1],
-        #           coordinates_2d_array[y + 1][x]]:
         value = coordinates_2d_array[temp_y][temp_x]
         if determine_if_space_contains_target(value, target):
             adjacent_health_values.append((value, value.health, temp_x, temp_y))
@@ -162,22 +146,37 @@ def attack_with_character(coordinates_2d_array, x, y):
 
     final_target, final_target_x, final_target_y = choose_attack_target(coordinates_2d_array, x, y)
     if final_target:
-        final_target.health = max(final_target.health - 3, 0)
+        final_target.health = max(final_target.health - coordinates_2d_array[y][x].attack, 0)
         if final_target.health == 0:
             coordinates_2d_array[final_target_y][final_target_x] = "."
-        # print(coordinates_2d_array[y][x].character + " ATTACKS " + final_target.character)
+            if final_target.character == "E":
+                return True
 
 
-def build_2d_array_of_map(map_data):
+def get_total_health_of_all_remaining_combatants(coordinates_2d_array):
+    characters_to_move = []
+    for y_val, sub_array in enumerate(coordinates_2d_array):
+        for x_val, character in enumerate(sub_array):
+            if isinstance(character, Entity):
+                characters_to_move.append((x_val, y_val))
+
+    total_winning_side_health = 0
+    for (x, y) in characters_to_move:
+        total_winning_side_health += coordinates_2d_array[y][x].health
+    return total_winning_side_health
+
+
+def build_2d_array_of_map(map_data, attack_value=3):
     map_2d_array = []
     for y_val, data_string in enumerate(map_data):
         temp_list = []
         for x_val, element in enumerate(data_string.strip()):
-            if element in ["E", "G"]:
+            if element == "E":
+                temp_list.append(Entity(x_val, y_val, element, attack_value))
+            elif element == "G":
                 temp_list.append(Entity(x_val, y_val, element))
             else:
                 temp_list.append(element)
-            # list(data_string.strip())
         map_2d_array.append(temp_list)
     return map_2d_array
 
@@ -187,10 +186,8 @@ def run_battle_simulator(coordinates_2d_array):
     while True:
         characters_to_move = []
         for y_val, sub_array in enumerate(coordinates_2d_array):
-            # print(sub_array)
             for x_val, character in enumerate(sub_array):
                 if isinstance(character, Entity):
-                # if character in ["G", "E"]:
                     characters_to_move.append((x_val, y_val))
 
         for (x, y) in characters_to_move:
@@ -204,58 +201,53 @@ def run_battle_simulator(coordinates_2d_array):
                 attack_with_character(coordinates_2d_array, new_x, new_y)
         current_round += 1
 
-        print(current_round)
-        for sublist in coordinates_2d_array:
-            for value in sublist:
-                print(value, end="")
-            for value in sublist:
-                if isinstance(value, Entity):
-                    print(f" {value.character}({value.health})", end=" ")
-            print()
-        # print()
-        # for sublist in coordinates_2d_array:
-        #     for value in sublist:
-        #         if isinstance(value, Entity):
-        #             print(f"{value.character}({value.health})")
-                # if isinstance(value, Entity):
-                #     print(value.health, end=" ")
-        # print()
-        # input()
+
+def run_battle_simulator_until_victory(coordinates_2d_array):
+    current_round = 0
+    while True:
+        characters_to_move = []
+        for y_val, sub_array in enumerate(coordinates_2d_array):
+            for x_val, character in enumerate(sub_array):
+                if isinstance(character, Entity):
+                    characters_to_move.append((x_val, y_val))
+
+        for (x, y) in characters_to_move:
+            if isinstance(coordinates_2d_array[y][x], Entity) and \
+                    coordinates_2d_array[y][x].last_round_acted < current_round and \
+                    coordinates_2d_array[y][x].health > 0:
+                if not determine_if_enemy_combatants_exist(coordinates_2d_array, x, y):
+                    if coordinates_2d_array[y][x].character == "E":
+                        return coordinates_2d_array, current_round, True
+                    return coordinates_2d_array, current_round, False
+                coordinates_2d_array[y][x].last_round_acted = current_round
+                new_x, new_y = move_character(coordinates_2d_array, x, y)
+                elf_lost = attack_with_character(coordinates_2d_array, new_x, new_y)
+                if elf_lost:
+                    return coordinates_2d_array, current_round, False
+        current_round += 1
 
 
 def main():
     with open("15-BeverageBandits-Input.txt") as input_file:
         map_file_data = input_file.readlines()
-    # map_file_data = ["#########", "#G..G..G#", "#.......#", "#.......#", "#G..E..G#", "#.......#", "#.......#",
-    #                  "#G..G..G#", "#########"]
-    # map_file_data = ["#######", "#.G...#", "#...EG#", "#.#.#G#", "#..G#E#", "#.....#", "#######"]  # 27730
-    # map_file_data = ["#######", "#G..#E#", "#E#E.E#", "#G.##.#", "#...#E#", "#...E.#", "#######"]  # 36334
-    # map_file_data = ["#######", "#E..EG#", "#.#G.E#", "#E.##E#", "#G..#.#", "#..E#.#", "#######"]  # 39514
-    # map_file_data = ["#######", "#E.G#.#", "#.#G..#", "#G.#.G#", "#G..#.#", "#...E.#", "#######"]  # 27755
-    # map_file_data = ["#######", "#.E...#", "#.#..G#", "#.###.#", "#E#G#G#", "#...#G#", "#######"]  # 28944
-    # map_file_data = ["#########", "#G......#", "#.E.#...#", "#..##..G#", "#...##..#", "#...#...#", "#.G...G.#",
-    #                  "#.....G.#", "#########"]  # 18740
-    # map_file_data = ["#####", "##E##", "#GGE#", "#####"]  # 13400
-
     map_2d_array = build_2d_array_of_map(map_file_data)
     map_2d_array, current_round = run_battle_simulator(map_2d_array)
 
-    characters_to_move = []
-    for y_val, sub_array in enumerate(map_2d_array):
-        for x_val, character in enumerate(sub_array):
-            if isinstance(character, Entity):
-                characters_to_move.append((x_val, y_val))
-
-    total_winning_side_health = 0
-    for (x, y) in characters_to_move:
-        total_winning_side_health += map_2d_array[y][x].health
-        # print(map_2d_array[y][x].health)
+    total_winning_side_health = get_total_health_of_all_remaining_combatants(map_2d_array)
     print(current_round, total_winning_side_health, current_round * total_winning_side_health)
 
-    for sublist in map_2d_array:
-        for value in sublist:
-            print(value, end="")
-        print()
+    is_victory = False
+    current_attack_power = 3
+    while not is_victory:
+        current_attack_power += 1
+        with open("15-BeverageBandits-Input.txt") as input_file:
+            map_file_data = input_file.readlines()
+        map_2d_array = build_2d_array_of_map(map_file_data, current_attack_power)
+        map_2d_array, current_round, is_victory = run_battle_simulator_until_victory(map_2d_array)
+    print(current_attack_power)
+
+    total_winning_side_health = get_total_health_of_all_remaining_combatants(map_2d_array)
+    print(current_round, total_winning_side_health, current_round * total_winning_side_health)
 
 
 if __name__ == "__main__":
