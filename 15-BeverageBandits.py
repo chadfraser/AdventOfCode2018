@@ -14,7 +14,6 @@ class Entity:
 
     def __repr__(self):
         return "'" + self.character + "'"
-        return "'" + self.character + "'"
 
 
 def get_target_character(current_player):
@@ -41,15 +40,10 @@ def is_character_adjacent_to_target(coordinates_2d_array, x, y):
     current_turn_player = coordinates_2d_array[y][x]
     target = get_target_character(current_turn_player)
 
-    # if isinstance(coordinates_2d_array[y][x], Entity) and target == "G":
-    #     print("B", x, y, target, coordinates_2d_array[y][x], determine_if_space_contains_target(coordinates_2d_array[y - 1][x], target),
-    #           determine_if_space_contains_target(coordinates_2d_array[y + 1][x], target))
     if any(determine_if_space_contains_target(value, target) for value in [coordinates_2d_array[y - 1][x],
                                                                            coordinates_2d_array[y][x - 1],
                                                                            coordinates_2d_array[y][x + 1],
                                                                            coordinates_2d_array[y + 1][x]]):
-        # print("A", x, y, target, coordinates_2d_array[y][x], determine_if_space_contains_target(coordinates_2d_array[y - 1][x], target),
-        #       determine_if_space_contains_target(coordinates_2d_array[y + 1][x], target))
         return True
     return False
 
@@ -86,20 +80,21 @@ def find_nearest_target(coordinates_2d_array, x, y):
                     (x + offset_x, y + offset_y) not in coordinates_checked:
                 search_deque.append((x + offset_x, y + offset_y, distance + 1))
                 coordinates_checked[(x + offset_x, y + offset_y)] = (x, y, distance + 1)
-            coordinates_checked.setdefault((x + offset_x, y + offset_y), (x, y, float("inf")))
+            # coordinates_checked.setdefault((x + offset_x, y + offset_y), (x, y, None))
 
-    print(coordinates_checked)
-    print(set_of_target_tiles)
     reachable_target_tiles = [(coord, previous) for coord, previous in coordinates_checked.items()
                               if coord in set_of_target_tiles]
-    print(reachable_target_tiles)
     if reachable_target_tiles:
-        reachable_target_tiles.sort(key=lambda coord: coord[1][2])
-        print(reachable_target_tiles)
-        reachable_target_tiles.sort(key=lambda coord: coord[0][1])
-        print(reachable_target_tiles)
-        print()
-        return reachable_target_tiles[0], coordinates_checked
+        minimum_distance = min(reachable_target_tiles, key=lambda coord: coord[1][-1])[1][-1]
+        print(minimum_distance)
+        reachable_target_tiles = [(coord, previous) for coord, previous in reachable_target_tiles
+                                  if previous[-1] == minimum_distance]
+        if reachable_target_tiles:
+            reachable_target_tiles.sort(key=lambda coord: coord[0][0])
+            reachable_target_tiles.sort(key=lambda coord: coord[0][1])
+        # reachable_target_tiles.sort(key=lambda coord: coord[1][2])
+            target_tile, previous_tile = reachable_target_tiles[0]
+            return (target_tile, previous_tile[:-1]), coordinates_checked
     # while search_deque:
     #     x, y, distance = search_deque.popleft()
     #
@@ -119,11 +114,9 @@ def find_nearest_move(coordinates_2d_array, x, y):
     nearest_target_adjacent_coordinates, dict_of_coordinates_checked = find_nearest_target(coordinates_2d_array, x, y)
     if nearest_target_adjacent_coordinates is None:
         return
-    # print(dict_of_coordinates_checked)
-    print(nearest_target_adjacent_coordinates)
-    current_move = previous_move = nearest_target_adjacent_coordinates
+    (current_move, previous_move) = nearest_target_adjacent_coordinates
     while previous_move != (x, y):
-        current_move, previous_move = previous_move, dict_of_coordinates_checked[previous_move]
+        current_move, previous_move = previous_move, dict_of_coordinates_checked[previous_move][:-1]
     return current_move
 
 
@@ -215,11 +208,19 @@ def run_battle_simulator(coordinates_2d_array):
         for sublist in coordinates_2d_array:
             for value in sublist:
                 print(value, end="")
-                # if isinstance(value, Entity):
-                #     print(value.health, end=" ")
+            for value in sublist:
+                if isinstance(value, Entity):
+                    print(f" {value.character}({value.health})", end=" ")
             print()
         # print()
-        input()
+        # for sublist in coordinates_2d_array:
+        #     for value in sublist:
+        #         if isinstance(value, Entity):
+        #             print(f"{value.character}({value.health})")
+                # if isinstance(value, Entity):
+                #     print(value.health, end=" ")
+        # print()
+        # input()
 
 
 def main():
@@ -227,14 +228,14 @@ def main():
         map_file_data = input_file.readlines()
     # map_file_data = ["#########", "#G..G..G#", "#.......#", "#.......#", "#G..E..G#", "#.......#", "#.......#",
     #                  "#G..G..G#", "#########"]
-    # map_file_data = ["#######", "#.G...#", "#...EG#", "#.#.#G#", "#..G#E#", "#.....#", "#######"]
-    # map_file_data = ["#######", "#G..#E#", "#E#E.E#", "#G.##.#", "#...#E#", "#...E.#", "#######"]
-    # map_file_data = ["#######", "#E..EG#", "#.#G.E#", "#E.##E#", "#G..#.#", "#..E#.#", "#######"]
-    # map_file_data = ["#######", "#E.G#.#", "#.#G..#", "#G.#.G#", "#G..#.#", "#...E.#", "#######"]
-    # map_file_data = ["#######", "#.E...#", "#.#..G#", "#.###.#", "#E#G#G#", "#...#G#", "#######"]
+    # map_file_data = ["#######", "#.G...#", "#...EG#", "#.#.#G#", "#..G#E#", "#.....#", "#######"]  # 27730
+    # map_file_data = ["#######", "#G..#E#", "#E#E.E#", "#G.##.#", "#...#E#", "#...E.#", "#######"]  # 36334
+    # map_file_data = ["#######", "#E..EG#", "#.#G.E#", "#E.##E#", "#G..#.#", "#..E#.#", "#######"]  # 39514
+    # map_file_data = ["#######", "#E.G#.#", "#.#G..#", "#G.#.G#", "#G..#.#", "#...E.#", "#######"]  # 27755
+    # map_file_data = ["#######", "#.E...#", "#.#..G#", "#.###.#", "#E#G#G#", "#...#G#", "#######"]  # 28944
     # map_file_data = ["#########", "#G......#", "#.E.#...#", "#..##..G#", "#...##..#", "#...#...#", "#.G...G.#",
-    #                  "#.....G.#", "#########"]
-    # map_file_data = ["#####", "##E##", "#GGE#", "#####"]
+    #                  "#.....G.#", "#########"]  # 18740
+    # map_file_data = ["#####", "##E##", "#GGE#", "#####"]  # 13400
 
     map_2d_array = build_2d_array_of_map(map_file_data)
     map_2d_array, current_round = run_battle_simulator(map_2d_array)
