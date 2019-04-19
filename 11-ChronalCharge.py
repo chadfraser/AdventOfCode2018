@@ -69,7 +69,7 @@ class AugmentedCellMap(CellMap):
             sum = 0
             for x_index, value in enumerate(sub_array):
                 if size > 1:
-
+                    pass
 
 
         # for y_index, sub_array in enumerate(self.cell_array[:-size]):

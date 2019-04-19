@@ -1,12 +1,11 @@
-from copy import deepcopy
-import time
-
-
 class Graph:
     def __init__(self):
         self.all_nodes = {}
         self.currently_accessible_nodes = {}
-        self.visited_nodes = set()
+
+    def copy_node_sets_for_all_nodes(self):
+        for node in self.all_nodes:
+            node.store_copy_of_node_sets()
 
     def take_next_sorted_accessible_node_from_graph(self):
         accessible_nodes = sorted(self.currently_accessible_nodes)
@@ -61,14 +60,17 @@ class Node:
         self.value = value
         self.following_nodes = set()
         self.preceding_nodes = set()
-        self.following_nodes_b = set()
-        self.preceding_nodes_b = set()
+        self.following_nodes_copy = set()
+        self.preceding_nodes_copy = set()
         self.numeric_value = 60 + ord(value.lower()) - 96
-        # print(self.value, self.numeric_value)
 
-    def swap_sets(self):
-        self.following_nodes, self.following_nodes_b = self.following_nodes_b, self.following_nodes
-        self.preceding_nodes, self.preceding_nodes_b = self.preceding_nodes_b, self.preceding_nodes
+    def store_copy_of_node_sets(self):
+        self.following_nodes_copy = self.following_nodes.copy()
+        self.preceding_nodes_copy = self.preceding_nodes.copy()
+
+    def restore_node_sets(self):
+        self.following_nodes = self.following_nodes_copy
+        self.preceding_nodes = self.preceding_nodes_copy
 
 
 def connect_node(graph, initial_node_value, following_node_value):

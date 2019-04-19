@@ -34,7 +34,9 @@ def find_nanobots_in_range(target_nanobot, nanobot_list):
 
 
 def find_optimal_coordinate(nanobot_data):
-    pass
+    list_of_coordinates_in_range = []
+    for value in nanobot_data:
+        pass
 
 
 def main():

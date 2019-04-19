@@ -93,7 +93,6 @@ def attack_group(total_groups, attack_targets):
         if group.units_count == 0:
             continue
         try:
-            # print(f"{group.is_immune_system} group {i} kills", end="")
             group.attack_target(attack_targets[group])
             if attack_targets[group].units_count == 0:
                 surviving_groups.remove(attack_targets[group])
@@ -142,12 +141,6 @@ def main():
 
     immune_system_groups, starting_index = build_group_forces(file_data, is_immune_system=True)
     infection_groups = build_group_forces(file_data[starting_index+1:], is_immune_system=False)
-    # for i, group in enumerate(immune_system_groups, 1):
-    #     print(f"Group {i} contains {group.units_count} units. {group.attack_type} damage, {group.weaknesses} weaknesses, {group}")
-    # print()
-    # for i, group in enumerate(infection_groups, 1):
-    #     print(f"Group {i} contains {group.units_count} units. {group.attack_type} damage, {group.weaknesses} weaknesses, {group}")
-    # print()
     surviving_groups, immune_system_won = simulate_combat(immune_system_groups, infection_groups)
     surviving_units_count = get_surviving_units_count(surviving_groups)
     print(surviving_units_count)

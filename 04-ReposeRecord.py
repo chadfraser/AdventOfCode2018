@@ -27,7 +27,7 @@ def track_sleeping_amount(sleep_dict, guard, sleep_time, wake_time):
     return sleep_dict
 
 
-def get_guard_sleeping_minutes(sorted_data):
+def build_sleeping_minutes_dict(sorted_data):
     """Parses data from the sorted list parameter to build a dictionary tracking the minutes that all guards have spent
     asleep.
 
@@ -36,8 +36,8 @@ def get_guard_sleeping_minutes(sorted_data):
     :return: A dictionary of all minutes that guards have spent asleep
     """
     current_guard_number = 0
-    sleeping_minute = 0
-    guard_data_dict = {}
+    minute_starting_sleep = 0
+    guard_sleeping_minutes_dict = {}
 
     for line in sorted_data:
         date, time, instruction = line.split(" ", maxsplit=2)
@@ -45,14 +45,14 @@ def get_guard_sleeping_minutes(sorted_data):
             __, guard_number, __ = instruction.split(" ", maxsplit=2)
             current_guard_number = int(guard_number[1:])
         elif instruction[0:5] == "falls":
-            __, sleeping_minute = time.strip("]").split(":")
-            sleeping_minute = int(sleeping_minute)
+            __, minute_starting_sleep = time.strip("]").split(":")
+            minute_starting_sleep = int(minute_starting_sleep)
         else:
-            __, waking_minute = time.strip("]").split(":")
-            waking_minute = int(waking_minute)
-            guard_data_dict = track_sleeping_amount(guard_data_dict, current_guard_number, sleeping_minute,
-                                                    waking_minute)
-    return guard_data_dict
+            __, minute_waking_up = time.strip("]").split(":")
+            minute_waking_up = int(minute_waking_up)
+            guard_sleeping_minutes_dict = track_sleeping_amount(guard_sleeping_minutes_dict, current_guard_number,
+                                                                minute_starting_sleep, minute_waking_up)
+    return guard_sleeping_minutes_dict
 
 
 def find_sleepiest_guard(sleep_dict):
@@ -104,7 +104,7 @@ def find_most_common_minute(sleep_dict, chosen_guard):
 if __name__ == "__main__":
     with open("04-ReposeRecord-Input.txt") as input_file:
         sorted_file_data = sort_input_lines(input_file)
-        sleeping_minutes_dict = get_guard_sleeping_minutes(sorted_file_data)
+        sleeping_minutes_dict = build_sleeping_minutes_dict(sorted_file_data)
 
         guard_to_pick = find_sleepiest_guard(sleeping_minutes_dict)
         minute_to_pick = find_most_common_minute(sleeping_minutes_dict, guard_to_pick)

@@ -140,3 +140,20 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+def main():
+    with open("19-GoWithTheFlow-Input.txt") as input_file:
+        opcode_data_list = input_file.readlines()
+    instruction_pointer, opcode_instructions = parse_opcode_data_list(opcode_data_list)
+
+    register = [0, 0, 0, 0, 0, 0]
+    run_opcodes(instruction_pointer, opcode_instructions, register)
+    print(register)
+
+    register_b = [1, 0, 0, 0, 0, 0]
+    # run_opcodes(instruction_pointer, opcode_instructions, register_b)
+    print(register_b)
+
+
+if __name__ == "__main__":
+    main()
